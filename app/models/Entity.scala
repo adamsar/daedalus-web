@@ -28,7 +28,8 @@ object Entity{
       BSONDocument(
         "name" -> entity.name,
         "aliases" -> entity.aliases,
-        "displayName" -> entity.displayName
+        "displayName" -> entity.displayName,
+        "id" -> entity.id.getOrElse(null)
       )
     }
   }
