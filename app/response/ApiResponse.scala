@@ -4,7 +4,6 @@ import play.api.libs.json._
 import reactivemongo.bson._
 
 import play.modules.reactivemongo.json.BSONFormats._
-import reactivemongo.bson.BSONString
 import scala.Some
 
 case class ApiResponse[A <: HttpResponseCode, B <: ApiStatusCode](code: A,
