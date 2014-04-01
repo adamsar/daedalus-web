@@ -6,7 +6,8 @@ import scala.concurrent._
 import reactivemongo.bson._
 
 import ExecutionContext.Implicits.global
-import response.{SuccessResponse, BadRequestResponse, ErrorResponse, ApiResponse}
+import response.{SuccessResponse, BadRequestResponse, ErrorResponse}
+
 
 
 /**

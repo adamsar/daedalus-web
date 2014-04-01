@@ -1,9 +1,11 @@
 package response
 
 import play.api.libs.json._
-import reactivemongo.bson.{BSONDocumentWriter, BSONValue, BSONDocument}
+import reactivemongo.bson._
 
 import play.modules.reactivemongo.json.BSONFormats._
+import reactivemongo.bson.BSONString
+import scala.Some
 
 case class ApiResponse[A <: HttpResponseCode, B <: ApiStatusCode](code: A,
                                                                   status: B,
@@ -30,8 +32,8 @@ object ApiResponse {
       BSONDocument(
         "code" -> response.code.asInstanceOf[HttpResponseCode],
         "status" -> response.status.asInstanceOf[ApiStatusCode],
-        "reason" -> response.reason.getOrElse(null),
-        "value" -> response.value.getOrElse(null)
+        "reason" -> response.reason,
+        "value" -> response.value
       )
     }
 
