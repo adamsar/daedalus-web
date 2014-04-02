@@ -38,6 +38,16 @@ object HttpResponseCode {
     def write(t: HttpResponseCode): BSONValue = BSONInteger(t)
   }
 
+  implicit def fromInt(code: Int):HttpResponseCode = code match {
+    case 200 => new OkResponse
+    case 201 => new AcceptedResponse
+    case 202 => new NoContentResponse
+    case 400 => new BadRequestResponse
+    case 401 => new UnauthorizedResponse
+    case 404 => new NotFoundResponse
+    case unknownCode:Int => new HttpResponseCode(unknownCode)
+  }
+
 
 }
 

@@ -1,5 +1,4 @@
 import models.Entity
-import models.Entity._
 import org.specs2.mutable._
 
 import play.api.test._

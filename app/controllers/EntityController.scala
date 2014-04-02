@@ -3,11 +3,11 @@ package controllers
 import play.api.mvc._
 import forms.EntityForms.entityForm
 import scala.concurrent._
-import reactivemongo.bson._
+import play.modules.reactivemongo.json.BSONFormats._
 
 import ExecutionContext.Implicits.global
-import response.{SuccessResponse, BadRequestResponse, ErrorResponse}
-
+import response.{ApiResponse, SuccessResponse, BadRequestResponse, ErrorResponse}
+import request.TaskServerRequests
 
 
 /**
@@ -24,13 +24,19 @@ object EntityController extends Controller {
     entityForm.bindFromRequest
       .fold(formErrors => {
         future { BadRequest((
-          new ErrorResponse(new BadRequestResponse(),
-                            formErrors.errorsAsJson.toString)
-          ).asJson)
+          ApiResponse.responseAsJson(new ErrorResponse(new BadRequestResponse(),
+                            formErrors.errorsAsJson.toString))
+          ))
         }
       },
+
       success => {
-        future { Ok(new SuccessResponse(BSONString(success)).asJson) }
+        TaskServerRequests.entitiesTask(success) map { response =>
+          ApiResponse.httpResponseToApiResponse(response) match {
+            case success:SuccessResponse[_] => Ok(ApiResponse.responseAsJson(success))
+            case errorResponse: ErrorResponse => BadRequest(ApiResponse.responseAsJson(errorResponse))
+          }
+        }
       })
   }
 
