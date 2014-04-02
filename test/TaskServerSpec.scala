@@ -1,11 +1,7 @@
 import org.specs2.mutable._
-import play.api.libs.openid.Errors.BAD_RESPONSE
 import play.api.test._
 
 import play.api.test.Helpers._
-import play.api.libs.json._
-import org.scalamock.Mock
-import request.TaskServerRequests
 
 class TaskServerSpec extends Specification {
   "The EntityController" should {
