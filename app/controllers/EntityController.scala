@@ -6,8 +6,10 @@ import scala.concurrent._
 import play.modules.reactivemongo.json.BSONFormats._
 
 import ExecutionContext.Implicits.global
-import response.{ApiResponse, SuccessResponse, BadRequestResponse, ErrorResponse}
+import response.{ApiResponse, SuccessResponse, ErrorResponse}
+import response.ApiResponse._
 import request.TaskServerRequests
+import play.api.libs.json.JsValue
 
 
 /**
@@ -23,18 +25,14 @@ object EntityController extends Controller {
   def text = Action.async { implicit request =>
     entityForm.bindFromRequest
       .fold(formErrors => {
-        future { BadRequest((
-          ApiResponse.responseAsJson(new ErrorResponse(new BadRequestResponse(),
-                            formErrors.errorsAsJson.toString))
-          ))
-        }
+        future { BadRequest(formErrors: JsValue)}
       },
 
       success => {
         TaskServerRequests.entitiesTask(success) map { response =>
           ApiResponse.httpResponseToApiResponse(response) match {
-            case success:SuccessResponse[_] => Ok(ApiResponse.responseAsJson(success))
-            case errorResponse: ErrorResponse => BadRequest(ApiResponse.responseAsJson(errorResponse))
+            case success:SuccessResponse[_] => Ok(success: JsValue)
+            case errorResponse: ErrorResponse => BadRequest(errorResponse: JsValue)
           }
         }
       })

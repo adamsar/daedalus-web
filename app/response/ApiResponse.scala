@@ -6,6 +6,7 @@ import reactivemongo.bson._
 import play.modules.reactivemongo.json.BSONFormats._
 import scala.Some
 import com.ning.http.client.Response
+import play.api.data.Form
 
 case class ApiResponse[A <: HttpResponseCode, B <: ApiStatusCode](code: A,
                                                                   status: B,
@@ -40,6 +41,10 @@ object ApiResponse {
       case 200 => new SuccessResponse(Json.parse(httpResponse.getResponseBody))
       case otherCode => new ErrorResponse(otherCode, httpResponse.getResponseBody)
     }
+  }
+
+  implicit def formErrorsToJson(formErrors: Form[_]): JsValue = {
+    new ErrorResponse(new BadRequestResponse(), formErrors.errors.map(_.message).mkString(", "))
   }
 
 }
