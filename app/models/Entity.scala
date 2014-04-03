@@ -30,8 +30,7 @@ object Entity{
       BSONDocument(
         "name" -> entity.name,
         "aliases" -> entity.aliases,
-        "displayId" -> entity.displayName,
-        "_id" -> entity.id.getOrElse(null),
+        "displayName" -> entity.displayName,
         "relatedEntities" -> Seq[String]()
       )
     }
@@ -51,10 +50,10 @@ object Entity{
   val entityForm = Form(
     mapping(
       "name" -> nonEmptyText,
-      "aliases" -> commaDelimitedSeq,
+      "aliases" -> commaDelimitedList,
       "displayName" -> optional(nonEmptyText)
     ) { (name, aliases, displayName) =>
-      Entity(name, aliases.toList, displayName.getOrElse(name))
+      Entity(name, aliases, displayName.getOrElse(name))
     } { entity =>
         Some((entity.name, entity.aliases, Option(entity.displayName)))
     }

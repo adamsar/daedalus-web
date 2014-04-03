@@ -15,6 +15,7 @@ import models.Entity
 import models.Entity._
 import play.Logger
 import search.EntityQuery
+import scala.util.{Try, Failure, Success}
 
 
 /**
@@ -116,20 +117,30 @@ object EntityController extends Controller with MongoController {
    * @return
    */
   def put(name: String) = Action.async { implicit request =>
-    onEntity(name) { entity: Option[Entity] =>
-      entity map { ent =>
-        entityUpdateForm.bindFromRequest.fold(
-          formErrors => {
-            //Impossible to reach
-            BadRequest(NotFoundApiResponse: JsValue)
-          },
-          updateData => {
-            updateData on ent andPutInto entityCollection
-            Accepted(ContentAcceptedApiResponse: JsValue)
-          }
-        )
-      } getOrElse { BadRequest(NotFoundApiResponse: JsValue) }
+    entityCollection
+      .find(EntityQuery.entityByName(name))
+      .one[Entity]
+      .flatMap { entity: Option[Entity] =>
+        entity map { ent =>
+          entityUpdateForm.bindFromRequest.fold(
+            formErrors => {
+              //Impossible to reach
+              future { BadRequest(NotFoundApiResponse: JsValue) }
+            },
+            updateData => {
+              Try(updateData on ent andPutInto entityCollection) match {
+                case Success(future) => {
+                  future.map(_ => Ok(ContentAcceptedApiResponse: JsValue))
+                }
+                case Failure(throwable) => {
+                  future { BadRequest(new ErrorResponse(new BadRequestResponse(), throwable.getMessage): JsValue) }
+                }
+              }
+            }
+          )
+        } getOrElse {future {NotFound(NotFoundApiResponse: JsValue)}}
+      }
     }
-  }
+
 
 }
