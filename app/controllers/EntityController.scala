@@ -87,26 +87,15 @@ object EntityController extends Controller with MongoController {
   }
 
   /**
-   * Private function for performing an operation on an entity if it exists
-   * @param name - the name of the entity to query for
-   * @param functor - the act that will be performed on the Option[Entity]
-   * @tparam A Return type
-   * @return Future[A] of what is mapped via the functor
-   */
-  private def onEntity[A](name: String)(functor: Option[Entity] => A):Future[A] = {
-    entityCollection
-      .find(EntityQuery.entityByName(name))
-      .one[Entity]
-      .map(functor)
-  }
-
-  /**
    * Returns the jsonified for the entity if it exists
    * @param name the name of the entity to query for.
    * @return
    */
   def get(name: String) = Action.async { implicit request =>
-     onEntity(name) { entity =>
+    entityCollection
+      .find(EntityQuery.entityByName(name))
+      .one[Entity]
+      .map { entity =>
         entity.map(ent => Ok(new SuccessResponse(ent): JsValue)).getOrElse(NotFound(NotFoundApiResponse:JsValue))
     }
   }
