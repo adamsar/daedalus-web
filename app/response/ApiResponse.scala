@@ -47,4 +47,8 @@ object ApiResponse {
     new ErrorResponse(new BadRequestResponse(), formErrors.errors.map(_.message).mkString(", "))
   }
 
+  val CreatedApiResponse = new SuccessResponse(JsNull, new CreatedResponse)
+  val NotFoundApiResponse = new ErrorResponse(new NotFoundResponse, "Request entity was not found")
+  val ContentAcceptedApiResponse = new SuccessResponse(JsNull, new AcceptedResponse)
+
 }
