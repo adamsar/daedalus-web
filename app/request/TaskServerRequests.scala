@@ -23,7 +23,13 @@ object EntitiesUrl {
 
 }
 
-object TaskServerRequests {
+trait TaskServerRequests {
+
+  def entitiesTask(text:String): Future[Response]
+
+}
+
+class DispatchTaskServerRequests extends TaskServerRequests {
 
   def entitiesTask(text: String):Future[Response] = {
     Http(

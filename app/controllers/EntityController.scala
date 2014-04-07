@@ -16,14 +16,16 @@ import models.Entity._
 import play.Logger
 import search.EntityQuery
 import scala.util.{Try, Failure, Success}
+import scaldi.{Injector, Injectable}
 
 
 /**
  * Controller dealing with Entity resource requests
  */
-object EntityController extends Controller with MongoController {
+class EntityController(implicit inj: Injector) extends Controller with MongoController with Injectable {
 
   val entityCollection: JSONCollection = db.collection[JSONCollection]("entities")
+  val taskServerRequests = inject [TaskServerRequests]
 
   /**
    * Takes text via POST, extracts information about entities in the
@@ -37,7 +39,7 @@ object EntityController extends Controller with MongoController {
       },
 
       success => {
-        TaskServerRequests.entitiesTask(success) map { response =>
+        taskServerRequests.entitiesTask(success) map { response =>
           ApiResponse.httpResponseToApiResponse(response) match {
             case success:SuccessResponse[_] => Ok(success: JsValue)
             case errorResponse: ErrorResponse => BadRequest(errorResponse: JsValue)
@@ -127,9 +129,10 @@ object EntityController extends Controller with MongoController {
               }
             }
           )
-        } getOrElse {future {NotFound(NotFoundApiResponse: JsValue)}}
+        } getOrElse { future { NotFound(NotFoundApiResponse: JsValue) } }
       }
     }
 
 
 }
+
