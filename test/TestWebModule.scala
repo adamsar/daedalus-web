@@ -5,6 +5,7 @@ import java.nio.ByteBuffer
 import java.util
 import org.scalamock.scalatest.MockFactory
 import org.scalatest.FunSuite
+import org.specs2.matcher.MatchResult
 import play.api.Logger
 import request.TaskServerRequests
 import scala.concurrent._
@@ -66,14 +67,15 @@ object TestHttpRequests {
   var results:String = ""
   var code:Int = 200
 
-  def withResults(response: String, newCode:Int = 200)(functor: () => _) = {
+  def withResults(response: String, newCode:Int = 200)(functor: () => MatchResult[_]) = {
     val oldResponse = results
     val oldCode = code
     results = response
     code = newCode
-    functor()
+    val returnable = functor()
     results = oldResponse
     code = oldCode
+    returnable
   }
 
 }

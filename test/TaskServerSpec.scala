@@ -3,6 +3,7 @@ import org.specs2.mutable._
 import play.api.test._
 
 import play.api.test.Helpers._
+import play.Configuration
 
 class TaskServerSpec extends Specification {
   "The EntityController" should {
@@ -15,13 +16,12 @@ class TaskServerSpec extends Specification {
     }
 
     "return a success message when a valid request is made to the test server" in {
-      running(new FakeApplication(withGlobal = Some(TestGlobal))) {
+      running(new FakeApplication(additionalConfiguration= TestConfig.localMongo, withGlobal = Some(TestGlobal))) {
 
         TestHttpRequests.withResults(IOUtils.toString(getClass.getResourceAsStream("/taskServer.json"))) { () =>
           val Some(result) = route(FakeRequest(POST, "/entities/text").withFormUrlEncodedBody(("text", "something")))
           contentAsString(result) must contain({"success"})
         }
-        true must_==(true)
       }
     }
   }

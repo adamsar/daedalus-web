@@ -65,4 +65,14 @@ object EntityForms {
     )(EntityUpdateData.apply)(EntityUpdateData.unapply)
   )
 
+  case class QueryData(q:Option[String], page: Option[Int], numPage: Option[Int])
+
+  val entityQueryForm = Form(
+    mapping(
+      "q" -> optional(text),
+      "page" -> optional(number),
+      "numPage" -> optional(number)
+    )(QueryData.apply)(QueryData.unapply)
+  )
+
 }

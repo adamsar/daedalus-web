@@ -1,7 +1,7 @@
 package controllers
 
 import play.api.mvc._
-import forms.EntityForms.{classifyTextForm, entityUpdateForm}
+import forms.EntityForms._
 import scala.concurrent._
 
 import ExecutionContext.Implicits.global
@@ -17,6 +17,7 @@ import play.Logger
 import search.EntityQuery
 import scala.util.{Try, Failure, Success}
 import scaldi.{Injector, Injectable}
+import reactivemongo.api.QueryOpts
 
 
 /**
@@ -53,13 +54,24 @@ class EntityController(implicit inj: Injector) extends Controller with MongoCont
    * @return
    */
   def list = Action.async { implicit request =>
-    entityCollection
-      .find(Json.obj())
-      .sort(Json.obj("name" -> 1))
-      .cursor[Entity]
-      .collect[List](20).map { users =>
-        Ok(new SuccessResponse(JsArray(users.map(Entity.entityToJson(_)))): JsValue)
+    entityQueryForm.bindFromRequest.fold(
+      formErrors => {
+        //Impossible
+        future {
+          BadRequest(new ErrorResponse(new BadRequestResponse(), "unable to list entities"): JsValue)
+        }
+      },
+      queryData => {
+        entityCollection
+          .find(Json.obj())
+          .options(new QueryOpts(skipN = queryData.page.getOrElse(0) * queryData.numPage.getOrElse(10)))
+          .sort(Json.obj("name" -> 1))
+          .cursor[Entity]
+          .collect[List](queryData.numPage.getOrElse(10)).map { users =>
+          Ok(new SuccessResponse(JsArray(users.map(Entity.entityToJson(_)))): JsValue)
+        }
       }
+    )
   }
 
   /**
