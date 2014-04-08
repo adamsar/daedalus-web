@@ -4,10 +4,10 @@ import play.api.data._
 import play.api.data.Forms._
 
 import DaedalusMappings._
-import models.Entity
+import models.{EntityType, Entity}
 import play.modules.reactivemongo.json.collection.JSONCollection
 import reactivemongo.bson.BSONDocument
-import models.Entity.{EntityBSONWriter, EntityBSONReader}
+import models.Entity.{EntityBSONWriter}
 import reactivemongo.core.commands.LastError
 import error.MongoUpdateError
 import play.modules.reactivemongo.json.BSONFormats._
@@ -66,8 +66,21 @@ object EntityForms {
   )
 
   case class QueryData(q:Option[String], page: Option[Int], numPage: Option[Int])
+  case class EntityQueryData(query:Option[String],
+                             page: Option[Int],
+                             numPage: Option[Int],
+                             entityType: Option[EntityType])
 
   val entityQueryForm = Form(
+    mapping(
+      "q" -> optional(text),
+      "page" -> optional(number),
+      "numPage" -> optional(number),
+      "type" -> optional(entityType)
+    )(EntityQueryData.apply)(EntityQueryData.unapply)
+  )
+
+  val repoQueryForm = Form(
     mapping(
       "q" -> optional(text),
       "page" -> optional(number),

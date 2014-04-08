@@ -63,7 +63,7 @@ class EntityController(implicit inj: Injector) extends Controller with MongoCont
       },
       queryData => {
         entityCollection
-          .find(Json.obj())
+          .find(queryData.entityType.map(ent => Json.obj("types.type" -> ent.name)).getOrElse(Json.obj()))
           .options(new QueryOpts(skipN = queryData.page.getOrElse(0) * queryData.numPage.getOrElse(10)))
           .sort(Json.obj("name" -> 1))
           .cursor[Entity]

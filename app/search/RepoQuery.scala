@@ -1,6 +1,5 @@
 package search
 
-import play.api.libs.json.JsValue
 import play.api.libs.json._
 
 object RepoQuery {
@@ -10,4 +9,5 @@ object RepoQuery {
       entities map { ent => Json.obj("relatedEntities.name" -> ent ) })
     )
   }
+
 }
