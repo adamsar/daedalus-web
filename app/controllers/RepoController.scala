@@ -11,8 +11,10 @@ import ExecutionContext.Implicits.global
 import play.modules.reactivemongo.json.collection.JSONCollection
 import response.{ErrorResponse, BadRequestResponse, SuccessResponse}
 import reactivemongo.api.QueryOpts
-import models.Entity
+import models.{Repo, Entity}
+import models.Repo._
 import search.RepoQuery
+import play.api.Logger
 
 object RepoController extends Controller with MongoController{
 
@@ -28,10 +30,11 @@ object RepoController extends Controller with MongoController{
       collection
         .find(Json.obj())
         .options(new QueryOpts(skipN=queryData.page.getOrElse(0) * queryData.numPage.getOrElse(10)))
-        .cursor[JsValue]
+        .cursor[Repo]
         .collect[List](queryData.numPage.getOrElse(10))
         .map{ values =>
-        Ok(new SuccessResponse(new JsArray(values)): JsValue)
+          val jsonReturn = JsArray(values.map(repoWrite.writes(_)))
+          Ok(SuccessResponse.returnable(jsonReturn))
       }
     }
     )
@@ -60,10 +63,11 @@ object RepoController extends Controller with MongoController{
           }
         } else{
           collection.find(RepoQuery.relatedEntities(entitiesSeq))
-            .cursor[JsValue]
+            .cursor[Repo]
             .collect[List](10)
             .map { repos =>
-              Ok(new SuccessResponse(new JsArray(repos)): JsValue)
+              val jsonReturn = JsArray(repos.map(repoWrite.writes(_)))
+              Ok(SuccessResponse.returnable(jsonReturn))
           }
         }
       }

@@ -50,7 +50,7 @@ object RelatedEntity {
       (JsPath \ "name").read[String]
     )(RelatedEntity.apply _)
 
-  implicit val relatedEntityFormats = Json.format[RelatedEntity]
+  implicit val relatedEntityFormats = Format(relatedReader, relatedWriter)
 
 }
 
@@ -118,7 +118,7 @@ object Entity{
 
 
 
-  implicit val entityFormats = Json.format[Entity]
+  implicit val entityFormats = Format(entityReader, entityWriter)
 
   implicit def entityToJson(entity: Entity): JsValue = entityWriter.writes(entity)
 

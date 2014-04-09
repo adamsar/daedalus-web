@@ -22,6 +22,12 @@ class SuccessResponse[A <: HttpResponseCode](value: JsValue,
                                              code: A = new OkResponse())
   extends ApiResponse[A, SuccessStatus](code, new SuccessStatus(), None, Some(value))
 
+object SuccessResponse {
+  def returnable[A <: HttpResponseCode](value: JsValue, code: A = new OkResponse()): JsValue = {
+    new SuccessResponse[A](value, code=code)
+  }
+}
+
 object ApiResponse {
 
 
