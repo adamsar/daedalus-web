@@ -16,9 +16,9 @@ class TaskServerSpec extends Specification {
     }
 
     "return a success message when a valid request is made to the test server" in {
-      running(new FakeApplication(additionalConfiguration= TestConfig.localMongo, withGlobal = Some(TestGlobal))) {
+      running(TestConfig.testApplication) {
 
-        TestHttpRequests.withResults(IOUtils.toString(getClass.getResourceAsStream("/taskServer.json"))) { () =>
+        TestHttpRequests.withResults(new StringFixture("taskServer.json").data) { () =>
           val Some(result) = route(FakeRequest(POST, "/entities/text").withFormUrlEncodedBody(("text", "something")))
           contentAsString(result) must contain({"success"})
         }

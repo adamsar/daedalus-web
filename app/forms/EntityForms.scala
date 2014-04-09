@@ -35,14 +35,15 @@ object EntityForms {
         currentEntity = Some(new Entity(name.getOrElse(entity.name),
                                         aliases.getOrElse(entity.aliases),
                                         displayName.getOrElse(entity.displayName),
-                                        entity.id))
+                                        entity.relatedEntities,
+                                        entity._id))
       }
       this
     }
 
     def andPutInto(collection: JSONCollection):Future[LastError] = {
       currentEntity.map { entity =>
-        collection.update(BSONDocument("_id" -> entity.id.get), modifier, upsert=false)
+        collection.update(BSONDocument("_id" -> entity._id.get), modifier, upsert=false)
       } getOrElse { throw new MongoUpdateError }
     }
 
@@ -65,7 +66,7 @@ object EntityForms {
     )(EntityUpdateData.apply)(EntityUpdateData.unapply)
   )
 
-  case class QueryData(q:Option[String], page: Option[Int], numPage: Option[Int])
+
   case class EntityQueryData(query:Option[String],
                              page: Option[Int],
                              numPage: Option[Int],
@@ -80,12 +81,6 @@ object EntityForms {
     )(EntityQueryData.apply)(EntityQueryData.unapply)
   )
 
-  val repoQueryForm = Form(
-    mapping(
-      "q" -> optional(text),
-      "page" -> optional(number),
-      "numPage" -> optional(number)
-    )(QueryData.apply)(QueryData.unapply)
-  )
+
 
 }

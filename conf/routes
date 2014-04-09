@@ -3,8 +3,6 @@
 # ~~~~
 
 # Home page
-GET         /                      controllers.Application.index
-
 POST        /entities/text        @controllers.EntityController.text
 GET         /entities        @controllers.EntityController.list
 GET         /repos                 controllers.RepoController.all

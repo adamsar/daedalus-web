@@ -3,7 +3,7 @@ package controllers
 
 import play.api.mvc._
 import play.api.libs.json._
-import play.modules.reactivemongo.{ReactiveMongoPlugin, MongoController}
+import play.modules.reactivemongo.MongoController
 
 import forms.EntityForms.entityQueryForm
 import scala.concurrent._
