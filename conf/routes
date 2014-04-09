@@ -4,9 +4,11 @@
 
 # Home page
 POST        /entities/text        @controllers.EntityController.text
+POST        /entities             @controllers.EntityController.create
+PUT         /entities/:entity        @controllers.EntityController.put(entity)
 GET         /entities        @controllers.EntityController.list
-GET         /repos                 controllers.RepoController.all
-GET         /entities/:entities/repos   controllers.RepoController.list(entities)
+GET         /repos        controllers.RepoController.all
+GET         /entities/:entities/repos        controllers.RepoController.list(entities)
 
 # Map static resources from the /public folder to the /assets URL path
-GET         /assets/*file          controllers.Assets.at(path="/public", file)
+GET         /assets/*file        controllers.Assets.at(path="/public", file)

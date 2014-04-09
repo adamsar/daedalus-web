@@ -93,7 +93,7 @@ class EntityController(implicit inj: Injector) extends Controller with MongoCont
               BadRequest(new ErrorResponse(new BadRequestResponse(), errMsg): JsValue)
             }
             case _ => {
-              Ok(CreatedApiResponse: JsValue)
+              Created(CreatedApiResponse: JsValue)
             }
           }
         }
@@ -121,6 +121,7 @@ class EntityController(implicit inj: Injector) extends Controller with MongoCont
    * @return
    */
   def put(name: String) = Action.async { implicit request =>
+    val query = EntityQuery.entityByName(name)
     entityCollection
       .find(EntityQuery.entityByName(name))
       .one[Entity]
@@ -129,14 +130,18 @@ class EntityController(implicit inj: Injector) extends Controller with MongoCont
           entityUpdateForm.bindFromRequest.fold(
             formErrors => {
               //Impossible to reach
+              Logger.info(formErrors.toString)
               future { BadRequest(NotFoundApiResponse: JsValue) }
             },
             updateData => {
               Try(updateData on ent andPutInto entityCollection) match {
                 case Success(future) => {
-                  future.map(_ => Ok(ContentAcceptedApiResponse: JsValue))
+                  future.map(lastError => {
+                    Accepted(ContentAcceptedApiResponse: JsValue)
+                  })
                 }
                 case Failure(throwable) => {
+                  Logger.info(throwable.getMessage)
                   future { BadRequest(new ErrorResponse(new BadRequestResponse(), throwable.getMessage): JsValue) }
                 }
               }

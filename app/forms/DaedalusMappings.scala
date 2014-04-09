@@ -16,7 +16,7 @@ object DaedalusMappings {
         Try(value.split(",").toList).map(Right(_)).getOrElse(
           error(key, s"${value} is not a comma delimited list")
         )
-      }.getOrElse { error(key, "No string provided") }
+      }.getOrElse { Right(List()) }
     }
 
     private def error(key: String, msg:String) = Left(Seq(new FormError(key, msg)))
@@ -34,7 +34,7 @@ object DaedalusMappings {
     override def bind(key: String, data: Map[String, String]): Either[Seq[FormError], EntityType] = {
       data.get(key).map { value =>
         stringToType(value) match {
-          case entityType:EntityType if(entityType.isInstanceOf[UnknownType]) => {
+          case entityType:EntityType if (entityType.isInstanceOf[UnknownType]) => {
             Left(Seq(new FormError(key, s"${value} is not a known type")))
           }
           case entityType:EntityType => Right(entityType)

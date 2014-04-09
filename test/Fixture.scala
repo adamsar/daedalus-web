@@ -2,6 +2,7 @@
 import org.apache.commons.io.IOUtils
 import org.specs2.matcher.MatchResult
 import play.api.libs.json._
+import play.api.Logger
 import play.modules.reactivemongo.json.collection.JSONCollection
 import reactivemongo.api.MongoDriver
 
@@ -9,6 +10,7 @@ import scala.concurrent.{ExecutionContext, Future}
 import scala.concurrent._
 import scala.concurrent.duration._
 import ExecutionContext.Implicits.global
+import scala.util.Try
 
 trait Fixture[A, B, C] {
 
@@ -22,11 +24,11 @@ trait Fixture[A, B, C] {
 object Fixture {
 
   def usingFixture[A](fixture: Fixture[A, _, _])(functor: (A) => MatchResult[_]):MatchResult[_] = {
-    Await.result(fixture.load(), 100 millis)
+    Await.result(fixture.load(), 5000 millis)
     try{
       functor(fixture.data)
     } finally {
-      Await.result(fixture.destroy(), 100 millis)
+      Await.result(fixture.destroy(), 5000 millis)
     }
   }
 
@@ -54,12 +56,21 @@ class JsonFixture(path: String, collection: String) extends FromStreamFixture[Js
 
   val mongoCollection = JsonFixture.testCollection(collection)
 
-  def data: JsValue = Json.parse(IOUtils.toString(stream))
+  def data: JsValue = {
+    val stringified = IOUtils.toString(stream)
+    Logger.info(stringified)
+    Json.parse(stringified)
+  }
 
   def load = {
     data match {
-      case obj: JsObject => mongoCollection.insert(obj)
-      case arr: JsArray => Future.sequence(arr.as[Seq[JsObject]].map {mongoCollection.insert(_)})
+      case obj: JsObject => {
+        obj.value.get("objects").map { objs:JsValue =>
+          Future.sequence(objs.as[Seq[JsObject]].map { mongoCollection.insert(_) })
+        } getOrElse {
+          mongoCollection.insert(obj)
+        }
+      }
       case _ => throw new Exception("Unexpected JSON type")
     }
   }
@@ -68,6 +79,8 @@ class JsonFixture(path: String, collection: String) extends FromStreamFixture[Js
 }
 
 object JsonFixture {
+  def removeCollection(s: String) = Try(Await.result(testCollection(s).drop(), 5000 milli))
+
 
   def testCollection(collectionName: String): JSONCollection = {
     new MongoDriver()

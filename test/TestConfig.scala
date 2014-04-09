@@ -7,7 +7,7 @@ import scaldi.play.ScaldiSupport
 
 object TestConfig {
 
-  def localMongo = Map("mongodb.uri" -> "mongodb://localhost/daedalus")
+  def localMongo = Map("mongodb.uri" -> "mongodb://localhost/daedalus_test")
 
   def taskServer(url: String = "localhost") = Map("taskserver.url" -> url)
 

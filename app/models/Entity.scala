@@ -91,15 +91,21 @@ object Entity{
   }
 
   implicit val entityWriter = new Writes[Entity]{
+
     def writes(entity: Entity): JsValue = {
-      Json.obj(
-        "id" -> entity._id.map((bId: BSONObjectID) => JsString(bId.stringify)).getOrElse[JsValue](JsNull),
-        "displayName" -> entity.displayName,
-        "relatedEntities" -> entity.relatedEntities.map(relatedWriter.writes),
-        "name" -> entity.name,
-        "aliases" -> entity.aliases
+      writeJsonNoId(entity) ++ Json.obj(
+        "id" -> entity._id.map((bId: BSONObjectID) => JsString(bId.stringify)).getOrElse[JsValue](JsNull)
       )
     }
+  }
+
+  def writeJsonNoId(entity: Entity): JsObject = {
+    Json.obj(
+      "displayName" -> entity.displayName,
+      "relatedEntities" -> entity.relatedEntities.map(relatedWriter.writes),
+      "name" -> entity.name,
+      "aliases" -> entity.aliases
+    )
   }
 
   implicit val entityReader: Reads[Entity] = (

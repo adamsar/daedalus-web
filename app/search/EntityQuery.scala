@@ -6,9 +6,9 @@ object EntityQuery {
 
   def entityByName(name: String): JsValue= {
     Json.obj(
-      "$or" -> Json.obj(
-        "name" -> JsString(name),
-        "aliases" -> JsString(name)
+      "$or" -> Seq(
+        Map("name" -> name),
+        Map("aliases" -> name)
       )
     )
   }

@@ -28,9 +28,9 @@ object EntityForms {
     var currentEntity:Option[Entity] = None
 
     def on(entity: Entity): EntityUpdateData = {
-      val updated = Seq[Boolean](name.map(entity.name == _).getOrElse(false),
-                        displayName.map(entity.displayName == _).getOrElse(false),
-                        aliases.map(entity.aliases == _).getOrElse(false)).fold(false) {_ || _}
+      val updated = Seq[Boolean](name.map(entity.name != _).getOrElse(false),
+                        displayName.map(entity.displayName != _).getOrElse(false),
+                        aliases.map(entity.aliases != _).getOrElse(false)).fold(false) {_ || _}
       if (updated){
         currentEntity = Some(new Entity(name.getOrElse(entity.name),
                                         aliases.getOrElse(entity.aliases),
@@ -44,7 +44,7 @@ object EntityForms {
     def andPutInto(collection: JSONCollection):Future[LastError] = {
       currentEntity.map { entity =>
         collection.update(BSONDocument("_id" -> entity._id.get), modifier, upsert=false)
-      } getOrElse { throw new MongoUpdateError }
+      }.get
     }
 
     def modifier = BSONDocument(
