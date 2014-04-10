@@ -17,9 +17,6 @@ case class Repo(name: String,
                 _type: RepoType,
                 id: Option[BSONObjectID] = None
                 ) {
-
-  def similarRepoCollection: String = s"sc_${name}"
-
 }
 
 case class RepoType(_type: String, url: String)
@@ -91,11 +88,11 @@ object Repo {
         "url" -> o.url,
         "summary" -> o.summary,
         "relatedEntities" -> o.relatedEntities,
-        "type" -> o._type
+        "type" -> o._type,
+        "id" -> o.id.map[JsValue](id => JsString(id.stringify)).getOrElse[JsValue](JsNull)
       )
     }
   }
-
 
   implicit val repoFormats = Format(repoRead, repoWrite)
 

@@ -25,8 +25,14 @@ class EntityJSONSpec extends Specification{
                                          "aliases" -> Seq("test1", "test2"),
                                          "displayName" -> "Test entity",
                                          "relatedEntities" -> Seq(
-                                            BSONDocument("type" -> "language", "name" -> "Test1")
-                                         ))))
+                                            BSONDocument(
+                                              "type" -> "language",
+                                              "name" -> "Test1"
+                                            )
+                                          )
+                                         )
+                                        )
+                                       )
     }
 
    "be json serializable" in {

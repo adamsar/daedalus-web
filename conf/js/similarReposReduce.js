@@ -8,7 +8,7 @@ function (key, values) {
     });
 
     return {
-        repoId: key,
+        originRepo: repoId,
         name: values[0].name,
         matches: matches
     };
