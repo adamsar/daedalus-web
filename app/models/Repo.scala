@@ -12,11 +12,15 @@ case class Repo(name: String,
                 displayName: String,
                 author: String,
                 url: String,
-                summary: String,
+                summary: Option[String],
                 relatedEntities: Seq[RelatedEntity],
                 _type: RepoType,
                 id: Option[BSONObjectID] = None
-                )
+                ) {
+
+  def similarRepoCollection: String = s"sc_${name}"
+
+}
 
 case class RepoType(_type: String, url: String)
 
@@ -52,7 +56,7 @@ object Repo {
         bson.getAs[String]("displayName").get,
         bson.getAs[String]("author").get,
         bson.getAs[String]("url").get,
-        bson.getAs[String]("summary").get,
+        bson.getAs[String]("summary"),
         bson.get("relatedEntities").map((obj:BSONValue) =>
           obj match {
             case relateds:BSONArray => {
@@ -72,7 +76,7 @@ object Repo {
     (JsPath \ "displayName").read[String] and
     (JsPath \ "author").read[String] and
     (JsPath \ "url").read[String] and
-    (JsPath \ "summary").read[String] and
+    (JsPath \ "summary").readNullable[String] and
     (JsPath \ "relatedEntities").read[Seq[RelatedEntity]] and
     (JsPath \ "type").read[RepoType] and
     (JsPath \ "_id").readNullable[BSONObjectID]
