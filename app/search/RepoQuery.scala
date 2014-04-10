@@ -2,7 +2,6 @@ package search
 
 import play.api.libs.json._
 import models.{RelatedEntity, SimilarRepo, Repo}
-import models.RelatedEntity._
 import models.Repo._
 import models.SimilarRepo._
 import reactivemongo.bson._
@@ -12,8 +11,6 @@ import play.modules.reactivemongo.json.BSONFormats._
 import scala.concurrent._
 import ExecutionContext.Implicits.global
 import play.modules.reactivemongo.json.collection.JSONCollection
-import scala.collection.parallel.mutable
-import play.api.Logger
 
 object RepoQuery {
 

@@ -9,7 +9,7 @@ import forms.EntityForms.entityQueryForm
 import scala.concurrent._
 import ExecutionContext.Implicits.global
 import play.modules.reactivemongo.json.collection.JSONCollection
-import response.{ErrorResponse, BadRequestResponse, SuccessResponse}
+import response.{ApiResponse, ErrorResponse, BadRequestResponse, SuccessResponse}
 import reactivemongo.api.QueryOpts
 import models.{SimilarRepo, CheckedMark, Repo, Entity}
 import models.SimilarRepo._
@@ -19,6 +19,7 @@ import scala.concurrent.duration._
 import play.modules.reactivemongo.json.BSONFormats._
 import reactivemongo.bson.{BSONDocument, BSONObjectID}
 import reactivemongo.api.collections.default.BSONCollection
+import request.{SearchRepos, GithubRequests}
 
 object RepoController extends Controller with MongoController{
 
@@ -80,9 +81,7 @@ object RepoController extends Controller with MongoController{
     }
   }
 
-  def similar(repoId: String = "") = Action.async {
-    //Todo: is this really a repo?
-
+  def getSimilar(repoId:String): Future[Seq[SimilarRepo]] = {
     def similarQuery = {
       similarsCollections
         .find(Json.obj("originId" -> repoId))
@@ -93,27 +92,42 @@ object RepoController extends Controller with MongoController{
 
     pollingCollection
       .find(BSONDocument(
-        "value" -> repoId,
-        "type" -> "similarRepoCheck"
-        ))
+      "value" -> repoId,
+      "type" -> "similarRepoCheck"
+    ))
       .one[CheckedMark]
       .flatMap { maybeMark =>
-       maybeMark match {
-         case Some(mark) => {
-           similarQuery.map { repos =>
-             val jsonReturn = JsArray(repos.map(similarWrites.writes(_)))
-             Ok(SuccessResponse.returnable(jsonReturn))
-           }
-         }
-         case None => {
-           RepoQuery.makeSimilars(repoId) map { similars =>
-             Await.result(pollingCollection.insert(CheckedMark.similarRepoCheck(repoId)), 3000 millis)
-             val jsonReturn = JsArray(similars.slice(0, 10).map(similarWrites.writes(_)))
-             Ok(SuccessResponse.returnable(jsonReturn))
-           }
-         }
-       }
+      maybeMark match {
+        case Some(mark) => {
+          similarQuery
+        }
+        case None => {
+          RepoQuery.makeSimilars(repoId) map { similars =>
+            Await.result(pollingCollection.insert(CheckedMark.similarRepoCheck(repoId)), 3000 millis)
+            val jsonReturn = JsArray(similars.slice(0, 10).map(similarWrites.writes(_)))
+            new SuccessResponse(jsonReturn)
+            similars.slice(0, 10)
+          }
+        }
       }
+    }
+
+  }
+
+  def similar(repoId: String = "") = Action.async {
+    //Todo: is this really a repo?
+    getSimilar(repoId).map { repos =>
+      val jsReturn = JsArray(repos.map(similarWrites.writes(_)))
+      Ok(SuccessResponse.returnable(jsReturn))
+    }
+  }
+
+  def search(repoId: String, searchText: String) = Action.async {
+    getSimilar(repoId).flatMap { repos =>
+      SearchRepos(repos.slice(0, 4).map(_.relatedName)) withText searchText map { value =>
+        Ok(value)
+      }
+    }
   }
 
 }
