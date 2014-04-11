@@ -151,6 +151,5 @@ class EntityController(implicit inj: Injector) extends Controller with MongoCont
       }
     }
 
-
 }
 

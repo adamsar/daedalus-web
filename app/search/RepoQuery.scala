@@ -1,18 +1,28 @@
 package search
 
 import play.api.libs.json._
-import models.{RelatedEntity, SimilarRepo, Repo}
+import models.{CheckedMark, RelatedEntity, SimilarRepo, Repo}
 import models.Repo._
 import models.SimilarRepo._
 import reactivemongo.bson._
 import reactivemongo.core.commands.RawCommand
 import models.RelatedEntity.RelatedBSONWriter
+import models.CheckedMark._
 import play.modules.reactivemongo.json.BSONFormats._
 import scala.concurrent._
+import scala.concurrent.duration._
 import ExecutionContext.Implicits.global
 import play.modules.reactivemongo.json.collection.JSONCollection
+import response.SuccessResponse
+import reactivemongo.api.collections.default.BSONCollection
+import reactivemongo.api.QueryOpts
+import play.api.Logger
 
 object RepoQuery {
+
+  val repoCollection = MongoDB.mainDB.collection[JSONCollection]("repos")
+  val similarsCollection = MongoDB.mainDB.collection[JSONCollection]("similarRepos")
+  val pollingCollection = MongoDB.mainDB.collection[BSONCollection]("polling")
 
   def relatedEntities(entities: Seq[String]): JsValue = {
 
@@ -51,8 +61,7 @@ object RepoQuery {
   }
 
   def makeSimilars(repoId: String) = {
-    val repoCollection = MongoDB.mainDB.collection[JSONCollection]("repos")
-    val similarsCollection = MongoDB.mainDB.collection[JSONCollection]("similarRepos")
+
 
     repoCollection
       .find(BSONDocument("_id" -> BSONObjectID(repoId)))
@@ -89,6 +98,59 @@ object RepoQuery {
         }
 
       }
+
+  }
+
+  def getSimilar(repoId:String, rows: Int = 10, start: Int = 0): Future[Seq[SimilarRepo]] = {
+    val returnAll = rows <= 0
+    def similarQuery = {
+
+      val baseQuery = similarsCollection
+                        .find(Json.obj("originId" -> repoId))
+
+      if (returnAll) {
+
+        baseQuery
+          .sort(Json.obj("matches" -> -1))
+          .cursor[SimilarRepo]
+          .collect[Seq]()
+
+      } else {
+
+        baseQuery.options(new QueryOpts(skipN = start * rows))
+                 .sort(Json.obj("matches" -> -1))
+                 .cursor[SimilarRepo]
+                 .collect[Seq](rows)
+
+      }
+    }
+
+    pollingCollection
+      .find(BSONDocument(
+      "value" -> repoId,
+      "type" -> "similarRepoCheck"
+    ))
+      .one[CheckedMark]
+      .flatMap { maybeMark =>
+      maybeMark match {
+        case Some(mark) => {
+          similarQuery
+        }
+        case None => {
+          RepoQuery.makeSimilars(repoId) map { similars =>
+            Await.result(pollingCollection.insert(CheckedMark.similarRepoCheck(repoId)), 3000 millis)
+            val jsonReturn = JsArray(similars.slice(0, 10).map(similarWrites.writes(_)))
+            new SuccessResponse(jsonReturn)
+            if(returnAll) {
+              val startByRows = start * rows
+              similars.slice(startByRows, startByRows + rows)
+            } else {
+             similars
+            }
+          }
+        }
+      }
+    }
 
   }
 

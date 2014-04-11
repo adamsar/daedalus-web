@@ -81,53 +81,14 @@ object RepoController extends Controller with MongoController{
     }
   }
 
-  def getSimilar(repoId:String): Future[Seq[SimilarRepo]] = {
-    def similarQuery = {
-      similarsCollections
-        .find(Json.obj("originId" -> repoId))
-        .sort(Json.obj("matches" -> -1))
-        .cursor[SimilarRepo]
-        .collect[List](10)
-    }
-
-    pollingCollection
-      .find(BSONDocument(
-      "value" -> repoId,
-      "type" -> "similarRepoCheck"
-    ))
-      .one[CheckedMark]
-      .flatMap { maybeMark =>
-      maybeMark match {
-        case Some(mark) => {
-          similarQuery
-        }
-        case None => {
-          RepoQuery.makeSimilars(repoId) map { similars =>
-            Await.result(pollingCollection.insert(CheckedMark.similarRepoCheck(repoId)), 3000 millis)
-            val jsonReturn = JsArray(similars.slice(0, 10).map(similarWrites.writes(_)))
-            new SuccessResponse(jsonReturn)
-            similars.slice(0, 10)
-          }
-        }
-      }
-    }
-
-  }
-
   def similar(repoId: String = "") = Action.async {
     //Todo: is this really a repo?
-    getSimilar(repoId).map { repos =>
+    RepoQuery.getSimilar(repoId).map { repos =>
       val jsReturn = JsArray(repos.map(similarWrites.writes(_)))
       Ok(SuccessResponse.returnable(jsReturn))
     }
   }
 
-  def search(repoId: String, searchText: String) = Action.async {
-    getSimilar(repoId).flatMap { repos =>
-      SearchRepos(repos.slice(0, 4).map(_.relatedName)) withText searchText map { value =>
-        Ok(value)
-      }
-    }
-  }
+
 
 }

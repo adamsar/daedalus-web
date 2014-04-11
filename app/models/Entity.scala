@@ -9,6 +9,7 @@ import play.api.libs.functional.syntax._
 import forms.DaedalusMappings._
 import play.modules.reactivemongo.json.BSONFormats._
 import error.MongoStructureError
+import akka.routing.MurmurHash
 
 case class Entity( name: String,
                    aliases: List[String],
@@ -16,7 +17,29 @@ case class Entity( name: String,
                    relatedEntities: Seq[RelatedEntity],
                    _id: Option[BSONObjectID] = None)
 
-case class RelatedEntity(_type: String, name: String)
+case class RelatedEntity(_type: String, name: String) extends Ordering[RelatedEntity] {
+
+  override def equals(other: Any) = {
+    other match {
+      case that: RelatedEntity => that._type.equals(_type) && that.name.equals(name)
+      case _ => false
+    }
+  }
+
+  def ==(other: RelatedEntity) = _type == other._type && name == other.name
+
+  override def hashCode(): Int = {
+    MurmurHash.stringHash(_type + name)
+  }
+
+  def compare(x: RelatedEntity, y: RelatedEntity): Int = {
+    if(x._type == y._type) {
+      x.name.compareTo(y.name)
+    } else {
+      x._type.compareTo(y._type)
+    }
+  }
+}
 
 object RelatedEntity {
 
