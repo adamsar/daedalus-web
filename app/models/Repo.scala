@@ -3,7 +3,6 @@ package models
 import reactivemongo.bson._
 import play.api.libs.json._
 import play.api.libs.functional.syntax._
-import RelatedEntity._
 import error.MongoStructureError
 import models.RepoType.RepoTypeBsonReader
 import play.modules.reactivemongo.json.BSONFormats._
