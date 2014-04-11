@@ -42,7 +42,7 @@ object SimilarRepo {
   implicit val similarReads: Reads[SimilarRepo] = (
     (JsPath \ "originId").read[String] and
     (JsPath \ "relatedId").read[String] and
-      (JsPath \ "relatedName").read[String] and
+    (JsPath \ "relatedName").read[String] and
     (JsPath \ "matches").read[Int] and
     (JsPath \ "relatedEntities").read[Seq[RelatedEntity]]
     )(SimilarRepo.apply _)
@@ -54,6 +54,19 @@ object SimilarRepo {
       (JsPath \ "matches").write[Int] and
       (JsPath \ "relatedEntities").write[Seq[RelatedEntity]]
     )(unlift(SimilarRepo.unapply))
+
+  val basicWrites: Writes[SimilarRepo] = new Writes[SimilarRepo]{
+
+    def writes(o: SimilarRepo): JsValue = {
+      Json.obj(
+        "originId" -> o.originRepoId,
+        "relatedId" -> o.relatedRepoId,
+        "relatedName" -> o.relatedName,
+        "matches" -> o.matches
+      )
+    }
+
+  }
 
   implicit val similarFormats = Format(similarReads, similarWrites)
 

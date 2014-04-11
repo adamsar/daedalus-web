@@ -84,7 +84,7 @@ object RepoController extends Controller with MongoController{
   def similar(repoId: String = "") = Action.async {
     //Todo: is this really a repo?
     RepoQuery.getSimilar(repoId).map { repos =>
-      val jsReturn = JsArray(repos.map(similarWrites.writes(_)))
+      val jsReturn = JsArray(repos.map(basicWrites.writes(_)))
       Ok(SuccessResponse.returnable(jsReturn))
     }
   }
