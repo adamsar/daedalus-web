@@ -9,17 +9,13 @@ import forms.EntityForms.entityQueryForm
 import scala.concurrent._
 import ExecutionContext.Implicits.global
 import play.modules.reactivemongo.json.collection.JSONCollection
-import response.{ApiResponse, ErrorResponse, BadRequestResponse, SuccessResponse}
+import response.{ErrorResponse, BadRequestResponse, SuccessResponse}
 import reactivemongo.api.QueryOpts
-import models.{SimilarRepo, CheckedMark, Repo, Entity}
+import models.{Repo, Entity}
 import models.SimilarRepo._
 import models.Repo._
 import search.RepoQuery
-import scala.concurrent.duration._
-import play.modules.reactivemongo.json.BSONFormats._
-import reactivemongo.bson.{BSONDocument, BSONObjectID}
 import reactivemongo.api.collections.default.BSONCollection
-import request.{SearchRepos, GithubRequests}
 
 object RepoController extends Controller with MongoController{
 

@@ -43,10 +43,12 @@ object ApiResponse {
   }
 
   implicit def httpResponseToApiResponse(httpResponse: Response): ApiResponse[_, _] = {
+
     httpResponse.getStatusCode match {
       case 200 => new SuccessResponse(Json.parse(httpResponse.getResponseBody))
       case otherCode => new ErrorResponse(otherCode, httpResponse.getResponseBody)
     }
+
   }
 
   implicit def formErrorsToJson(formErrors: Form[_]): JsValue = {

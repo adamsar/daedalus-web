@@ -6,6 +6,7 @@ import play.api.test.Helpers._
 import play.Configuration
 
 class TaskServerSpec extends Specification {
+
   "The EntityController" should {
 
     "return a proper error if there is not supplied text" in new WithApplication {

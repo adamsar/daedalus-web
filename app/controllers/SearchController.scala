@@ -11,7 +11,7 @@ import models.RepoCode._
 import response.SuccessResponse
 import play.api.libs.json.JsArray
 
-object SearchController extends Controller{
+object SearchController extends Controller {
 
   def repos(repoId: String, searchText: String) = Action.async {
 
