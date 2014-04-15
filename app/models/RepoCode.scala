@@ -5,6 +5,7 @@ import play.api.libs.functional.syntax._
 import scala.concurrent._
 import ExecutionContext.Implicits.global
 import dispatch.Future
+import play.api.Logger
 
 case class RepoCode(repoId: String, repoName: String, fragment: String, url:String)
 
@@ -22,7 +23,8 @@ object RepoCode {
                   githubResponse: Future[JsValue]) = {
     githubResponse.map { values =>
       (values \ "items").as[Seq[JsValue]].flatMap { item =>
-        val repoName = (item \ "full_name").as[String]
+        Logger.info(item.toString)
+        val repoName = ((item \ "repository").as[JsValue] \ "full_name").as[String].toLowerCase
         val link = (item \ "html_url").as[String]
         val associated = associatedRepos.find(_.relatedName == repoName).get
         (item \ "text_matches").as[Seq[JsValue]].map { textMatch =>
